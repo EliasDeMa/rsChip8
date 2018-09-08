@@ -1,0 +1,12 @@
+[package]
+name = "rsChip8"
+version = "0.1.0"
+authors = ["Demare <elias.demaertelaere@gmail.com>"]
+
+[dependencies]
+rand = "0.5.5"
+
+[dependencies.sdl2]
+version = "0.30"
+default-features = false
+features = ["gfx"]
