@@ -2,13 +2,13 @@ use sdl2;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 
-pub struct InputDriver {
+pub struct Input {
     events: sdl2::EventPump,
 }
 
-impl InputDriver {
+impl Input {
     pub fn new(sdl_context: &sdl2::Sdl) -> Self {
-        InputDriver { events: sdl_context.event_pump().unwrap() }
+        Input { events: sdl_context.event_pump().unwrap() }
     }
 
 

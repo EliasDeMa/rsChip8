@@ -11,11 +11,11 @@ const SCALE_FACTOR: u32 = 15;
 const SCREEN_WIDTH: u32 = (WIDTH as u32) * SCALE_FACTOR;
 const SCREEN_HEIGHT: u32 = (HEIGHT as u32) * SCALE_FACTOR;
 
-pub struct DisplayDriver {
+pub struct Display {
     canvas: Canvas<Window>,
 }
 
-impl DisplayDriver {
+impl Display {
     pub fn new(sdl_context: &sdl2::Sdl) -> Self {
         let video_subsys = sdl_context.video().unwrap();
         let window = video_subsys
@@ -35,7 +35,7 @@ impl DisplayDriver {
         canvas.clear();
         canvas.present();
 
-        DisplayDriver { canvas: canvas }
+        Display { canvas: canvas }
     }
 
     pub fn draw(&mut self, pixels: &[[u8; WIDTH]; HEIGHT]) {

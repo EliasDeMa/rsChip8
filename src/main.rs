@@ -3,14 +3,14 @@ extern crate rand;
 
 pub mod cpu;
 pub mod font;
-pub mod displaydriver;
-pub mod inputdriver;
+pub mod display;
+pub mod input;
 
 use cpu::Cpu;
 use std::fs::File;
 use std::io::Read;
-use displaydriver::DisplayDriver;
-use inputdriver::InputDriver;
+use display::Display;
+use input::Input;
 use std::thread;
 use std::time::Duration;
 
@@ -27,16 +27,16 @@ fn main() {
     let sdl_context = sdl2::init().unwrap();
 
     let mut chip8 = Cpu::new();
-    let mut display_driver = DisplayDriver::new(&sdl_context);
-    let mut input_driver = InputDriver::new(&sdl_context);
+    let mut display = Display::new(&sdl_context);
+    let mut input = Input::new(&sdl_context);
 
     chip8.load(&data); 
-    while let Ok(keypad) = input_driver.poll() {
+    while let Ok(keypad) = input.poll() {
 
         let output = chip8.tick(keypad);
 
         if output.vram_changed {
-            display_driver.draw(output.vram);
+            display.draw(output.vram);
         }
 
         thread::sleep(sleep_duration);
