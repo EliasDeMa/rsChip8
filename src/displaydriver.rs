@@ -4,12 +4,12 @@ use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-use CHIP8_WIDTH;
-use CHIP8_HEIGHT;
+use WIDTH;
+use HEIGHT;
 
 const SCALE_FACTOR: u32 = 15;
-const SCREEN_WIDTH: u32 = (CHIP8_WIDTH as u32) * SCALE_FACTOR;
-const SCREEN_HEIGHT: u32 = (CHIP8_HEIGHT as u32) * SCALE_FACTOR;
+const SCREEN_WIDTH: u32 = (WIDTH as u32) * SCALE_FACTOR;
+const SCREEN_HEIGHT: u32 = (HEIGHT as u32) * SCALE_FACTOR;
 
 pub struct DisplayDriver {
     canvas: Canvas<Window>,
@@ -38,7 +38,7 @@ impl DisplayDriver {
         DisplayDriver { canvas: canvas }
     }
 
-    pub fn draw(&mut self, pixels: &[[u8; CHIP8_WIDTH]; CHIP8_HEIGHT]) {
+    pub fn draw(&mut self, pixels: &[[u8; WIDTH]; HEIGHT]) {
         for (y, row) in pixels.iter().enumerate() {
             for (x, &col) in row.iter().enumerate() {
                 let x = (x as u32) * SCALE_FACTOR;

@@ -1,20 +1,19 @@
 use font::FONT_SET;
 
-use CHIP8_HEIGHT;
-use CHIP8_RAM;
-use CHIP8_WIDTH;
+use HEIGHT;
+use RAM;
+use WIDTH;
 use rand::prelude::*;
 
 pub struct OutputState<'a> {
-    pub vram: &'a [[u8; CHIP8_WIDTH]; CHIP8_HEIGHT],
+    pub vram: &'a [[u8; WIDTH]; HEIGHT],
     pub vram_changed: bool,
-    pub beep: bool,
 }
 
 pub struct Cpu {
-    vram: [[u8; CHIP8_WIDTH]; CHIP8_HEIGHT],
+    vram: [[u8; WIDTH]; HEIGHT],
     vram_changed: bool,
-    ram: [u8; CHIP8_RAM],
+    ram: [u8; RAM],
     stack: [usize; 16],
     v: [u8; 16],
     i: usize,
@@ -30,13 +29,13 @@ pub struct Cpu {
 impl Cpu {
     pub fn new() -> Self {
 
-        let mut ram = [0u8; CHIP8_RAM];
+        let mut ram = [0u8; RAM];
         for i in 0..FONT_SET.len() {
             ram[i] = FONT_SET[i];
         }
 
         Cpu {
-            vram: [[0; CHIP8_WIDTH]; CHIP8_HEIGHT],
+            vram: [[0; WIDTH]; HEIGHT],
             vram_changed: false,
             ram: ram,
             stack: [0; 16],
@@ -89,7 +88,6 @@ impl Cpu {
         OutputState {
             vram: &self.vram,
             vram_changed: self.vram_changed,
-            beep: self.sound_timer > 0,
         }
     }
 
@@ -115,8 +113,8 @@ impl Cpu {
             0x0 => {
                 match kk {
                     0xE0 => {
-                        for y in 0..CHIP8_HEIGHT {
-                            for x in 0..CHIP8_WIDTH {
+                        for y in 0..HEIGHT {
+                            for x in 0..WIDTH {
                                 self.vram[y][x] = 0;
                             }
                         }
@@ -230,9 +228,9 @@ impl Cpu {
             0xD => {
                 self.v[0x0f] = 0;
                 for byte in 0..n {
-                    let y = (self.v[y] as usize + byte) % CHIP8_HEIGHT;
+                    let y = (self.v[y] as usize + byte) % HEIGHT;
                     for bit in 0..8 {
-                        let x = (self.v[x] as usize + bit) % CHIP8_WIDTH;
+                        let x = (self.v[x] as usize + bit) % WIDTH;
                         let color = (self.ram[self.i + byte] >> (7 - bit)) & 1;
                         self.v[0x0f] |= color & self.vram[y][x];
                         self.vram[y][x] ^= color;

@@ -14,9 +14,9 @@ use inputdriver::InputDriver;
 use std::thread;
 use std::time::Duration;
 
-pub const CHIP8_WIDTH: usize = 64;
-pub const CHIP8_HEIGHT: usize =  32;
-pub const CHIP8_RAM: usize = 4096;
+pub const WIDTH: usize = 64;
+pub const HEIGHT: usize =  32;
+pub const RAM: usize = 4096;
 
 fn main() {
     let sleep_duration = Duration::from_millis(2);
