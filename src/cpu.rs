@@ -111,22 +111,7 @@ impl Cpu {
 
         match nibbles.0 {
             0x0 => {
-                match kk {
-                    0xE0 => {
-                        for y in 0..HEIGHT {
-                            for x in 0..WIDTH {
-                                self.vram[y][x] = 0;
-                            }
-                        }
-                        self.vram_changed = true;
-                        self.pc += 2;
-                    },
-                    0xEE => {
-                        self.sp -= 1;
-                        self.pc = self.stack[self.sp];
-                    },
-                    _ => panic!("uninplemented 00** {:#X} ", kk),
-                }
+                self.match0x0(kk);
             },
             0x1 => {
                 self.pc = nnn;
@@ -162,49 +147,7 @@ impl Cpu {
                 self.pc += 2;
             },
             0x8 => {
-                match n {
-                    0x0 => {
-                        let vy = self.v[y];
-                        self.v[x] = vy;                    
-                    },
-                    0x1 => {
-                        self.v[x] |= self.v[y];        
-                    },
-                    0x2 => {   
-                        self.v[x] &= self.v[y];                        
-                    },
-                    0x3 => {
-                        self.v[x] ^= self.v[y];         
-                    },
-                    0x4 => {
-                        let vx = self.v[x] as u16;
-                        let vy = self.v[y] as u16;
-                        let result = vx + vy;
-                        self.v[x] = result as u8;
-                        self.v[0x0f] = if result > 0xFF { 1 } else { 0 };    
-                    },
-                    0x5 => {
-                        self.v[0x0f] = if self.v[x] > self.v[y] { 1 } else { 0 };
-                        self.v[x] = self.v[x].wrapping_sub(self.v[y]);
-                        
-                    },
-                    0x6 => {
-                        self.v[0x0f] = self.v[x] & 1;
-                        self.v[x] >>= 1;
-                        
-                    },
-                    0x7 => {
-                        self.v[0x0f] = if self.v[y] > self.v[x] { 1 } else { 0 };
-                        self.v[x] = self.v[y].wrapping_sub(self.v[x]);
-                        
-                    },
-                    0xE => {
-                        self.v[0x0f] = (self.v[x] & 0b10000000) >> 7;
-                        self.v[x] <<= 1;
-                    }
-                    _ => panic!("uninplemented 8XY* {} ", n),
-                };
-                self.pc += 2;
+                self.match0x8(n, x, y);
             },
             0x9 => {
                 if self.v[x] != self.v[y] {
@@ -240,64 +183,135 @@ impl Cpu {
                 self.pc += 2;
             },
             0xE => {
-                match kk {
-                    0x9E => {
-                        if self.keypad[self.v[x] as usize] {
-                            self.pc += 2;
-                        } 
-                    },
-                    0xA1 => {
-                        if !self.keypad[self.v[x] as usize] {
-                            self.pc += 2;
-                        } 
-                    },
-                    _ => panic!("uninplemented isntruction EX** {:#X}", kk),
-                }
-                self.pc += 2;
+                self.match0xe(kk, x);
             },
             0xF => {
-                match kk {
-                    0x7 => {
-                        self.v[x] = self.delay_timer;
-                    },
-                    0xA => {
-                        self.keypad_waiting = true;
-                        self.keypad_register = x;
-                    },
-                    0x15 => {
-                        self.delay_timer = self.v[x];
-                    },
-                    0x18 => {
-                        self.sound_timer = self.v[x];
-                    },
-                    0x1E => {
-                        let vx = self.v[x];
-                        self.i += vx as usize;
-                    },
-                    0x29 => {
-                        self.i = (self.v[x] as usize) * 5;
-                    },
-                    0x33 => {
-                        self.ram[self.i] = self.v[x] / 100;
-                        self.ram[self.i + 1] = (self.v[x] % 100) / 10;
-                        self.ram[self.i + 2] = self.v[x] % 10;
-                    },
-                    0x55 => {
-                        for i in 0..x + 1 {
-                            self.ram[self.i + i] = self.v[i];
-                        }
-                    },
-                    0x65 => {
-                        for i in 0..x+1 {
-                            self.v[i] = self.ram[self.i + 1];
-                        }
-
-                    },
-                    _ => panic!("Uninplemented instruction FX** {:#X} ", kk),
-                }
-                self.pc += 2;
+                self.match0xf(kk, x);
             },
             _ => panic!("Uninplemented instruction {:#X} ", nibbles.0),
         }
     }
+
+    fn match0x0(&mut self, kk: u8) {
+        match kk {
+            0xE0 => {
+                for y in 0..HEIGHT {
+                    for x in 0..WIDTH {
+                        self.vram[y][x] = 0;
+                        }
+                    }
+                self.vram_changed = true;
+                self.pc += 2;
+            },
+            0xEE => {
+                self.sp -= 1;
+                self.pc = self.stack[self.sp];
+            },
+            _ => panic!("uninplemented 00** {:#X} ", kk),
+        }
+    }
+
+    fn match0x8(&mut self, n: usize, x: usize, y: usize) {
+        match n {
+            0x0 => {
+                let vy = self.v[y];
+                self.v[x] = vy;                    
+            },
+            0x1 => {
+                self.v[x] |= self.v[y];        
+                    },
+            0x2 => {   
+                self.v[x] &= self.v[y];                        
+                    },
+            0x3 => {
+                self.v[x] ^= self.v[y];         
+                    },
+            0x4 => {
+                let vx = self.v[x] as u16;
+                let vy = self.v[y] as u16;
+                let result = vx + vy;
+                self.v[x] = result as u8;
+                self.v[0x0f] = if result > 0xFF { 1 } else { 0 };    
+                    },
+            0x5 => {
+                self.v[0x0f] = if self.v[x] > self.v[y] { 1 } else { 0 };
+                self.v[x] = self.v[x].wrapping_sub(self.v[y]);         
+                    },
+            0x6 => {
+                self.v[0x0f] = self.v[x] & 1;
+                self.v[x] >>= 1;      
+                    },
+            0x7 => {
+                self.v[0x0f] = if self.v[y] > self.v[x] { 1 } else { 0 };
+                self.v[x] = self.v[y].wrapping_sub(self.v[x]);         
+                    },
+            0xE => {
+                self.v[0x0f] = (self.v[x] & 0b10000000) >> 7;
+                self.v[x] <<= 1;
+            },
+            _ => panic!("uninplemented 8XY* {} ", n),
+        };
+        self.pc += 2;
+    }
+
+    fn match0xe(&mut self, kk: u8, x: usize) {
+        match kk {
+            0x9E => {
+                if self.keypad[self.v[x] as usize] {
+                    self.pc += 2;
+                } 
+            },
+            0xA1 => {
+                if !self.keypad[self.v[x] as usize] {
+                    self.pc += 2;
+                } 
+            },
+            _ => panic!("uninplemented isntruction EX** {:#X}", kk),
+        }
+        self.pc += 2;
+    }
+
+    fn match0xf(&mut self, kk: u8, x: usize) {
+        match kk {
+            0x7 => {
+                self.v[x] = self.delay_timer;
+            },
+            0xA => {
+                self.keypad_waiting = true;
+                self.keypad_register = x;
+            },
+            0x15 => {
+                self.delay_timer = self.v[x];
+            },
+            0x18 => {
+                self.sound_timer = self.v[x];
+            },
+            0x1E => {
+                let vx = self.v[x];
+                self.i += vx as usize;
+            },
+            0x29 => {
+                self.i = (self.v[x] as usize) * 5;
+            },
+            0x33 => {
+                self.ram[self.i] = self.v[x] / 100;
+                self.ram[self.i + 1] = (self.v[x] % 100) / 10;
+                self.ram[self.i + 2] = self.v[x] % 10;
+            },
+            0x55 => {
+                for i in 0..x + 1 {
+                    self.ram[self.i + i] = self.v[i];
+                }
+            },
+            0x65 => {
+                for i in 0..x+1 {
+                    self.v[i] = self.ram[self.i + 1];
+                }
+
+            },
+            _ => panic!("Uninplemented instruction FX** {:#X} ", kk),
+        }
+        self.pc += 2;
+    }
 }
+
